@@ -17,11 +17,9 @@ $$
 $$
 
 where $g_i(x):\mathbb{R}^{n} \to \mathbb{R}^{k_i}$ is a vector function ("term") that takes $x$ and returns a $k_i$-vector; the $\beta_i \in\mathbb{R}^{k_i}$ is the approximation coefficient of the $i$-th term.
-Such a function approximation can be represented by a tuple
+Such a function approximation can be represented by a tuple $(n, \{g_i(x)\}_{i=1}^m, \{\beta_i\}_{i=1}^m)$.
 
-$$
-( n, \{g_i(x)\}_{i=1}^m, \{\beta_i\}_{i=1}^m )
-$$
+
 
 With data $(\mathbf{X} \in \mathbb{R}^{N\times n}, \mathbf{y} \in \mathbb{R}^{N})$, one can fit the approximation with least square method. If we stack the returned values by each $g_i(x)$ into a vector $z$
 
