@@ -28,9 +28,14 @@ function (g::Exponential)(x::AbstractVector)::Vector{Float64}
 end
 # ------------------------------------------------------------------------------
 function ∂(g::Exponential, x::AbstractVector)::Matrix{Float64}
-    return exp.(x)
+    return diagm(exp.(x))
 end
 # ------------------------------------------------------------------------------
 function ∂2(g::Exponential, x::AbstractVector)::Vector{Matrix{Float64}}
-    return diagm(exp.(x))
+    n = length(x)
+    res = Matrix{Float64}[zeros(Float64, n, n) for _ in 1:n]
+    for i in 1:n
+        res[i][i, i] = exp(x[i])
+    end
+    return res
 end

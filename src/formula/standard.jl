@@ -18,6 +18,7 @@ eq = lgam.StandardGAM{2}(
         lgam.Constant(),
         lgam.Poly(degrees = [1,2]),
         lgam.Logarithm(),
+        lgam.Exponential(),
     ],
     ylim = (-Inf,Inf),
 )
@@ -33,6 +34,7 @@ eq = lgam.StandardGAM(
         lgam.Constant(),
         lgam.Poly(degrees = [1,2]),
         lgam.Logarithm(),
+        lgam.Exponential(),
     ],
     ylim = (-Inf,Inf),
 )
@@ -43,10 +45,10 @@ let x0 = rand(2)
     eq(x0)
 
     # gradient: analytical vs. numerical
-    [lgam.∂(eq, x0) lgam.jacobian(eq, x0)]
+    [lgam.∂(eq, x0) lgam.jacobian(eq, x0)] |> display
     
     # Hessian: analytical vs. numerical
-    [lgam.∂2(eq, x0), lgam.hessian(eq, x0)]
+    [lgam.∂2(eq, x0), lgam.hessian(eq, x0)] |> display
 
     # expand: features
     stack(eq, rand(2))
