@@ -52,12 +52,12 @@ include("terms/log.jl")
 # 1st order interaction term(s)
 include("terms/cross.jl")
 
+# exponential term(s)
+include("terms/exp.jl")
+
 
 
 # the follows coming soon ....
-
-# exponential term(s)
-
 
 # sigmoid/logit term(s)
 
