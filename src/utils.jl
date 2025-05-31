@@ -21,6 +21,11 @@ function R²(ytrue::AbstractVector, ypred::AbstractVector)::Float64
     ss_total    = sum((ytrue .- ytrue_mean).^2)
     ss_residual = sum((ytrue .- ypred).^2)
 
+    if ss_total == 0.0
+        # R² is undefined if all ytrue values are the same
+        return Inf
+    end
+
     return 1.0 - (ss_residual / ss_total)
 end
 
