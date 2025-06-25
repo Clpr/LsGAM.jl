@@ -1,3 +1,5 @@
+export Poly
+
 """
     Poly(; degrees::Vector{Int} = [1,])
 

@@ -1,7 +1,7 @@
 name = "LsGAM"
 uuid = "700faee0-3706-4b1a-af9b-88a488dfd036"
 authors = ["Clpr <zhao1tian1hao1@outlook.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"

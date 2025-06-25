@@ -1,3 +1,5 @@
+export Logarithm
+
 """
     Logarithm(; ϵ::Float64 = 1E-8)
 

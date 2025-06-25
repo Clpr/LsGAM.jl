@@ -1,3 +1,5 @@
+export Exponential, InvExponential
+
 """
     Exponential(; degrees::Vector{Int} = [1,])
 
