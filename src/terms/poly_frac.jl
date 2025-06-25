@@ -1,9 +1,9 @@
-export Poly
+export FracionalPoly
 
 """
-    Poly(; degrees::Vector{Int} = [1,])
+    FracionalPoly(; degrees::Vector{Float64} = [0.5,])
 
-Polynomial terms of each element of `x` vector.
+Polynomial terms of each element of `x` vector but with fractional degrees.
 
 - Input size : `x` ∈ R^n
 - Output size: R^{length(degrees) * n}
@@ -18,19 +18,19 @@ come in the future.
 ## Notes
 - zero degree is not allowed, i.e. any 0 in `degrees=` will throw an error.
 """
-struct Poly <: AbstractTerm
-    degrees::Vector{Int}
-    function Poly(; degrees::Vector{Int} = [1,])
-        @assert all(degrees != 0) "Zero degree is not allowed in Poly."
+struct FracionalPoly <: AbstractTerm
+    degrees::Vector{Float64}
+    function FracionalPoly(; degrees::Vector{Float64} = [0.5,])
+        @assert all(degrees != 0) "Zero degree is not allowed in FracionalPoly."
         new(degrees)
     end
 end
 # ------------------------------------------------------------------------------
-function Base.length(g::Poly, n::Int)::Int
+function Base.length(g::FracionalPoly, n::Int)::Int
     return length(g.degrees) * n
 end
 # ------------------------------------------------------------------------------
-function (g::Poly)(x::AbstractVector)::Vector{Float64}
+function (g::FracionalPoly)(x::AbstractVector)::Vector{Float64}
     res = Float64[]
     for dgr in g.degrees
         append!(res, x .^ dgr)
@@ -38,14 +38,14 @@ function (g::Poly)(x::AbstractVector)::Vector{Float64}
     return res
 end
 # ------------------------------------------------------------------------------
-function ∂(g::Poly, x::AbstractVector)::Matrix{Float64}
+function ∂(g::FracionalPoly, x::AbstractVector)::Matrix{Float64}
     return reduce(vcat, [
         diagm(dgr .* x .^ (dgr - 1))
         for dgr in g.degrees
     ])
 end
 # ------------------------------------------------------------------------------
-function ∂2(g::Poly, x::AbstractVector)::Vector{Matrix{Float64}}
+function ∂2(g::FracionalPoly, x::AbstractVector)::Vector{Matrix{Float64}}
     n   = length(x)
     res = Matrix{Float64}[]
     for dgr in g.degrees, j in 1:n

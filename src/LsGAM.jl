@@ -46,6 +46,9 @@ include("terms/constant.jl")
 # polynomial term(s) (integer order)
 include("terms/poly.jl")
 
+# polynomial term(s) (fractional order)
+include("terms/poly_frac.jl")
+
 # logarithm term(s)
 include("terms/log.jl")
 
