@@ -1,0 +1,177 @@
+export ConvexGAM
+
+
+"""
+    ConvexGAM{N} <: AbstractGAM{N}
+
+A convex Generalized Additive Model (GAM) with non-negative coefficients for all
+terms except the constant term. This model is suitable for cases where the users
+would like to ensure the concavity/convexity of the model, such as in economics.
+
+## Notes
+- Be careful about the choice of `Constant` and `NegConstant` terms, as they can
+largely affect the model's behavior. Try both and choose the one that fits your 
+data best.
+
+
+## Example
+```julia
+lgam = include("src/LsGAM.jl")
+
+# simulated data
+X = rand(100, 2)
+y = -1.0 ./ (X[:,1] .+ X[:,2]) .+ randn(100) .* 0.1
+
+
+# define: convex model
+eq = lgam.ConvexGAM(
+    X, y,
+    [
+        lgam.Constant(),
+        lgam.Poly(degrees = [-1,]),
+        lgam.Logarithm(),
+        lgam.InvExponential(),
+    ],
+    ylim = (-Inf,0.0),
+)
+println(eq)
+println(eq.β)
+
+# test: negative constant term if knowing the data property
+eq_inv = lgam.ConvexGAM(
+    X, y,
+    [
+        lgam.NegConstant(),
+        lgam.Poly(degrees = [-1,]),
+        lgam.Logarithm(),
+        lgam.InvExponential(),
+    ],
+    ylim = (-Inf,0.0),
+)
+println(eq_inv)
+println(eq_inv.β)
+
+
+# visualization
+import Plots as plt
+
+fig1 = plt.surface(
+    LinRange(0.001,1,50),
+    LinRange(0.001,1,50),
+    (x,y) -> eq([x,y]),
+    camera   = (-30,30),
+    alpha    = 0.5,
+    colorbar = false,
+    title    = "ConvexGAM, Constant()",
+); 
+plt.scatter!(
+    fig1,
+    X[:,1], X[:,2], y,
+    markersize = 5,
+    markercolor = :red,
+    label = "data",
+)
+fig2 = plt.surface(
+    LinRange(0.001,1,50),
+    LinRange(0.001,1,50),
+    (x,y) -> eq_inv([x,y]),
+    camera   = (-30,30),
+    alpha    = 0.5,
+    colorbar = false,
+    title    = "ConvexGAM, NegConstant()",
+);
+plt.scatter!(
+    fig2,
+    X[:,1], X[:,2], y,
+    markersize = 5,
+    markercolor = :red,
+    label = "data",
+)
+plt.plot(fig1,fig2,layout = (1,2), size = (800,400))
+
+```
+"""
+mutable struct ConvexGAM{N} <: AbstractGAM{N}
+
+    terms::Vector{AbstractTerm}    # list of terms g_i(x_i)
+    β    ::Vector{Vector{Float64}} # vector of coefficients β_i for each term
+    m    ::Int                # number of terms g_i
+    r2   ::Float64            # pseudo R² of the model, i.e. the goodness of fit
+    ylim ::NTuple{2, Float64} # limits for the predicted values
+
+    function ConvexGAM{N}(
+        terms::Vector{AbstractTerm} ;
+        ylim ::NTuple{2, Float64} = (-Inf, Inf),
+    ) where N
+
+        m  = length(terms)
+        β  = Vector{Float64}[zeros(Float64, length(term,N)) for term in terms]
+        r2 = NaN
+        return new{N}(terms, β, m, r2, ylim)
+    end
+end
+# ------------------------------------------------------------------------------
+function Base.show(io::IO, eq::ConvexGAM{N}) where N
+    @printf(io, "ConvexGAM{R^%d --> R} with %d terms\n", N, eq.m)
+    @printf(io, "  ylim = [%.2f, %.2f]\n", eq.ylim...)
+    @printf(io, "  R2   = %.4f\n", eq.r2)
+    println(io, "  Formula: f(x) = ")
+    for (i, term) in enumerate(eq.terms)
+        @printf(io, "  + %s\n", typeof(term))
+    end
+    return nothing
+end
+# ------------------------------------------------------------------------------
+function isclamped(f::ConvexGAM{N}) where N
+    return isfinite(f.ylim[1]) || isfinite(f.ylim[2])
+end
+# ------------------------------------------------------------------------------
+function fit!(
+    f::ConvexGAM{N}, 
+    X::AbstractMatrix, 
+    y::AbstractVector ;
+
+    algorithm::Symbol = :fnnls, # :nnls, :fnnls, :pivot
+) where N
+    
+    # TODO: use Optim.jl or other optimization library that support sign
+    #       restrictions on the coefficients.
+    # NOTE: recommend to use `NonNegLeastSquares.jl` for non-negative LS fitting
+
+    # expand: design matrix
+    Greg = stack(f, X)
+
+    # fit: non-negative least squares
+    βvec = nnls.nonneg_lsq(Greg, y, alg = algorithm) |> vec
+
+    # split: stacked coefficients to individual terms
+    update!(f, βvec)
+
+    # compute: pseudo R²
+    ypred = Float64[f(x) for x in eachrow(X)]
+    f.r2  = R²(y, ypred)
+
+    return nothing
+end
+# ------------------------------------------------------------------------------
+function ConvexGAM(
+    X     ::AbstractMatrix,
+    y     ::AbstractVector,
+    terms ::Vector{AbstractTerm} ;
+
+    ylim     ::NTuple{2, Float64} = (-Inf, Inf),
+    algorithm::Symbol = :fnnls, # :nnls, :fnnls, :pivot
+)
+
+    nobs, N = size(X)
+    @assert length(y) == nobs "X and y must have the same number of obs/rows"
+    @assert N > 0 "X must have at least one column"
+
+    f = ConvexGAM{N}(terms, ylim = ylim)
+    fit!(f, X, y, algorithm = algorithm)
+
+    return f
+end
+
+
+

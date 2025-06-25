@@ -26,9 +26,9 @@ using SparseArrays
 import Printf: @printf, @sprintf
 
 
-using Combinatorics            # for interaction terms
-import MultivariateStats as mvs # for least squares fitting
-
+using Combinatorics               # for interaction terms
+import MultivariateStats  as mvs  # for least squares fitting
+import NonNegLeastSquares as nnls # for non-negative least squares fitting
 
 # ==============================================================================
 abstract type AbstractGAM{N} <: Any end
@@ -75,7 +75,8 @@ include("terms/exp.jl")
 # standard GAM model with optional clamping
 include("formula/standard.jl")
 
-
+# all-positive coefficient (convex) GAM model
+include("formula/convex.jl")
 
 
 

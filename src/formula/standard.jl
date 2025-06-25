@@ -1,3 +1,5 @@
+export StandardGAM
+
 """
     StandardGAM{N}
 
