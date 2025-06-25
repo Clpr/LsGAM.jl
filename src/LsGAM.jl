@@ -55,6 +55,11 @@ include("terms/cross.jl")
 # exponential term(s)
 include("terms/exp.jl")
 
+# CRRA (constant relative risk aversion) term(s), aka. exponential utility
+include("terms/crra.jl")
+
+# Cobb-Douglas term
+include("terms/cobb_douglas.jl")
 
 
 # the follows coming soon ....
