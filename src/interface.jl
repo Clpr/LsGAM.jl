@@ -68,6 +68,16 @@ SECTION: (VECTOR) TERMS g(x): R^n -> R^{k_i}
     parallel developement of new term types while keeping the `interface.jl`
     file tidy.
 
+    - Test script for the serialization API:
+    ```julia
+    for tName in last.(split.(gam.AbstractTerm |> subtypes .|> string, "."))
+       g = getfield(gam, Symbol(tName))()
+       di = gam.todict(g)
+       g2 = gam.fromdict(di)
+       println(g, ": ", g == g2)
+    end
+    ````
+
 
 + Shared interfaces ------------------------------------------------------------
 
@@ -173,22 +183,18 @@ De-serialize a term from a dictionary.
 
 ## Notes
 - To avoid maintaining a huge if-else chain, we urge each term type to use a
-single 
+single
+- We implement the interface using meta which is not the very performant, as we 
+expect the save/load operations would not be too often.
 """
 function fromdict(di::Dict{String,Any})::AbstractTerm
-
-
-
-    # TODO
-
-
-
-
-
-
-
-
-
+    return di |> getfield(
+        LsGAM, 
+        Symbol(
+            :fromdict_, 
+            di["type"]
+        )
+    )
 end # fromdict
 
 

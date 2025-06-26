@@ -41,8 +41,16 @@ function ∂2(g::Exponential, x::AbstractVector)::Vector{Matrix{Float64}}
     end
     return res
 end
-
-
+# ------------------------------------------------------------------------------
+function todict(g::Exponential)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "Exponential"
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_Exponential(di::Dict{String,Any})::Exponential
+    return Exponential()
+end
 
 
 
@@ -87,4 +95,14 @@ function ∂2(g::InvExponential, x::AbstractVector)::Vector{Matrix{Float64}}
         res[i][i, i] = exp(-x[i])
     end
     return res
+end
+# ------------------------------------------------------------------------------
+function todict(g::InvExponential)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "InvExponential"
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_InvExponential(di::Dict{String,Any})::InvExponential
+    return InvExponential()
 end

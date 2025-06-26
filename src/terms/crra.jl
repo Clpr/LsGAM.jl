@@ -14,6 +14,8 @@ CRRA (Constant Relative Risk Aversion) term for each variable in a vector `x`.
 
 ## Notes
 - γ != 1 required; otherwise, use `Logarithm()` instead.
+- In convex GAM, to denote x^(-m) where m > 0 polynomials (round or fractional),
+Use CRRA() where γ > 1.
 """
 struct CRRA <: AbstractTerm
     γ::Float64
@@ -44,4 +46,15 @@ function ∂2(g::CRRA, x::AbstractVector)::Vector{Matrix{Float64}}
         push!(res,tmp)
     end
     return res
+end
+# ------------------------------------------------------------------------------
+function todict(g::CRRA)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "CRRA",
+        "gamma" => g.γ
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_CRRA(di::Dict{String,Any})::CRRA
+    return CRRA(γ = di["gamma"])
 end

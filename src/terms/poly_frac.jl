@@ -55,3 +55,15 @@ function ∂2(g::FracionalPoly, x::AbstractVector)::Vector{Matrix{Float64}}
     end
     return res
 end
+# ------------------------------------------------------------------------------
+function todict(g::FracionalPoly)::Dict{String, Any}
+    return Dict(
+        "type"    => "FracionalPoly",
+        "degrees" => g.degrees,
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_FracionalPoly(di::Dict{String, Any})::FracionalPoly
+    @assert di["type"] == "FracionalPoly" "Invalid type: $(di["type"])"
+    return FracionalPoly(degrees = di["degrees"])
+end

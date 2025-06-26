@@ -23,6 +23,16 @@ end
 function ∂2(g::Constant, x::AbstractVector)::Vector{Matrix{Float64}}
     return Matrix{Float64}[zeros(Float64, length(x), length(x)),]
 end
+# ------------------------------------------------------------------------------
+function todict(g::Constant)::Dict{String, Any}
+    return Dict("type" => "Constant")
+end
+# ------------------------------------------------------------------------------
+function fromdict_Constant(di::Dict{String, Any})::Constant
+    @assert di["type"] == "Constant" "Invalid type for Constant term."
+    return Constant()
+end
+
 
 
 
@@ -48,4 +58,13 @@ end
 # ------------------------------------------------------------------------------
 function ∂2(g::NegConstant, x::AbstractVector)::Vector{Matrix{Float64}}
     return Matrix{Float64}[zeros(Float64, length(x), length(x)),]
+end
+# ------------------------------------------------------------------------------
+function todict(g::NegConstant)::Dict{String, Any}
+    return Dict("type" => "NegConstant")
+end
+# ------------------------------------------------------------------------------
+function fromdict_NegConstant(di::Dict{String, Any})::NegConstant
+    @assert di["type"] == "NegConstant" "Invalid type for NegConstant term"
+    return NegConstant()
 end

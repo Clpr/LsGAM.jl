@@ -34,3 +34,14 @@ function ∂2(g::Logarithm, x::AbstractVector)::Vector{Matrix{Float64}}
     end
     return res
 end
+# ------------------------------------------------------------------------------
+function todict(g::Logarithm)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "Logarithm",
+        "ϵ" => g.ϵ
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_Logarithm(di::Dict{String,Any})::Logarithm
+    return Logarithm(ϵ = di["ϵ"])
+end

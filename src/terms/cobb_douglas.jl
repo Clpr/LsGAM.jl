@@ -69,4 +69,18 @@ function ∂2(
         fval .* nomi ./ deno
     ]
 end
-
+# ------------------------------------------------------------------------------
+function todict(g::CobbDouglas)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "CobbDouglas",
+        "D" => g.D,
+        "alpha" => g.αs
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_CobbDouglas(di::Dict{String,Any})::CobbDouglas
+    return CobbDouglas(
+        D  = di["D"],
+        αs = di["alpha"]
+    )
+end

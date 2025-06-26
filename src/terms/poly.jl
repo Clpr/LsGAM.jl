@@ -55,3 +55,14 @@ function ∂2(g::Poly, x::AbstractVector)::Vector{Matrix{Float64}}
     end
     return res
 end
+# ------------------------------------------------------------------------------
+function todict(g::Poly)::Dict{String, Any}
+    return Dict(
+        "type"    => "Poly", 
+        "degrees" => g.degrees
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_Poly(di::Dict{String, Any})::Poly
+    return Poly(degrees = di["degrees"])
+end

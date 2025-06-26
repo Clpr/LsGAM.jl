@@ -75,3 +75,13 @@ function ∂2(g::Interaction, x::AbstractVector)::Vector{Matrix{Float64}}
     end
     return res
 end
+# ------------------------------------------------------------------------------
+function todict(g::Interaction)::Dict{String,Any}
+    return Dict{String,Any}(
+        "type" => "Interaction"
+    )
+end
+# ------------------------------------------------------------------------------
+function fromdict_Interaction(di::Dict{String,Any})::Interaction
+    return Interaction()
+end
