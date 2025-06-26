@@ -36,6 +36,18 @@ SECTION: (VECTOR) TERMS g(x): R^n -> R^{k_i}
     - the constructors should NOT explicitly take the dimension of `x` but the
     value of `N` should be inferred from the length of `x`
 
+    - TERMS should support serialization and deserialization, which implies that
+    all fields of the terms should be serializable and supported by JSON syntax.
+    A serialized term is a dictionary consisting of:
+        - type name of the term, e.g. "name : Poly"
+        - type parameters as a scalar or vector, e.g. "D : 3" for CobDouglas. 
+          this is optional and only applies to specific terms that have type 
+          params. leave it empty for terms without type params.
+        - type fields as a dictionary, e.g. "coefficients : [1.0, 2.0, 3.0]"
+          for terms that have fields. leave it empty for terms without fields.
+    - Use "todict(term)" interface to convert a term to a serializable dict; use
+      "fromdict(dict)" interface to convert a dict to a term instance. Each term
+      type should implement these methods.
 
 + Shared interfaces ------------------------------------------------------------
 
@@ -56,6 +68,10 @@ jacobian(g::AbstractTerm, x::AbstractVector)::Vector{Float64}
 
 # numerical Hessian of the term `g` at point `x`
 hessian(g::AbstractTerm, x::AbstractVector)::Matrix{Float64}
+
+# serialization & de-serialization API
+todict(g::AbstractTerm)::Dict{String, Any}
+fromdict(dict::Dict{String, Any})::AbstractTerm (specific to each term type)
 
 ===============================================================================#
 function Base.show(io::IO, g::AbstractTerm)
@@ -156,6 +172,23 @@ SECTION: GAM MODEL f(x) = β0 + ∑_{i=1}^m <g_i(x_i), β_i>
     - One should not be able to modify the GAM specification after it has been
     constructed. This leads to incompatibility with the fitted model.
 
+    - Each GAM should have a `save!(f::AbstractGAM, path::String)` method to 
+    export the GAM to a JSON file, and a `load(path::String)::AbstractGAM`
+    method to load the GAM from a JSON file. The JSON file should corresponds to
+    a generic dict that contains the following fields:
+        - `type`: the type of the GAM, e.g. "StandardGAM"
+        - `type_params`: a dict mapping from type parameter names to the values.
+          leave it empty if the GAM does not have type parameters.
+        - `fields`: a dict mapping from field names to the values except the
+          `terms` and `β` fields.
+        - `terms`: a vector of serialized terms, each term is a dict that is
+          created by the `todict(term)` method.
+        - `β`: a vector of vectors, each vector corresponds to the coefficients
+          of the corresponding term in `terms`. The coefficients are stored as
+          vectors of floats. The length of each vector should match the output
+          dimension of the corresponding term.
+
+
 
 + Shared interfaces ------------------------------------------------------------
 
@@ -191,7 +224,6 @@ update!(f::AbstractGAM{N}, βvec::AbstractVector) where N
 # dimension of the input `x` vector
 Base.ndims(f::AbstractGAM{N})::Int
 
-
 --------------------------------------------------------------------------------
 (The above methods can be implemented here since all terms are callable)
 --------------------------------------------------------------------------------
@@ -218,6 +250,10 @@ GAM_NAME(
     terms::Vector{AbstractTerm} ;
     ylim::NTuple{2,Float64} = (-Inf, Inf), # for clamped GAMs
 )
+
+# save & load (serialization)
+save!(f::AbstractGAM{N}, path::String)::Nothing
+load(path::String)::AbstractGAM{N}
 
 
 ===============================================================================#
