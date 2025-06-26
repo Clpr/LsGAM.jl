@@ -64,6 +64,11 @@ include("terms/crra.jl")
 # Cobb-Douglas term
 include("terms/cobb_douglas.jl")
 
+# ChebyshevT terms (no tensor product due to the additivity)
+include("terms/cheb.jl")
+
+
+
 
 # the follows coming soon ....
 

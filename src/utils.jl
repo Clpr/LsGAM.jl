@@ -29,3 +29,54 @@ function R²(ytrue::AbstractVector, ypred::AbstractVector)::Float64
     return 1.0 - (ss_residual / ss_total)
 end
 
+
+
+
+
+
+# ==============================================================================
+"""
+    chebT(x::Real, n::Int)::Float64
+
+Compute the Chebyshev polynomial of the first kind of degree `n` at point `x`.
+Using the Clenshaw recurrence relation.
+"""
+function chebT(x::Real, n::Int)::Float64
+    @assert n >= 0 "Degree n must be non-negative"
+    t0 = 1.0
+    n == 0 && return t0
+    t1 = x
+    n == 1 && return t1
+    tn = NaN
+    for _ in 2:n
+        tn = 2 * x * t1 - t0
+        t0 = t1
+        t1 = tn
+    end
+    return tn
+end
+# ------------------------------------------------------------------------------
+"""
+    chebU(x::Real, n::Int)::Float64
+
+Compute the Chebyshev polynomial of the second kind of degree `n` at point `x`.
+Using the Clenshaw recurrence relation.
+"""
+function chebU(x::Real, n::Int)::Float64
+    @assert n >= 0 "Degree n must be non-negative"
+    u0 = 1.0
+    n == 0 && return u0
+    u1 = 2 * x
+    n == 1 && return u1
+    un = NaN
+    for _ in 2:n
+        un = 2 * x * u1 - u0
+        u0 = u1
+        u1 = un
+    end
+    return un
+end
+
+
+
+
