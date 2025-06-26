@@ -94,7 +94,13 @@ mutable struct StandardGAM{N} <: AbstractGAM{N}
 end
 # ------------------------------------------------------------------------------
 function Base.show(io::IO, eq::StandardGAM{N}) where N
-    @printf(io, "StandardGAM{R^%d --> R} with %d terms\n", N, eq.m)
+    npars = [length(coef) for coef in eq.β] |> sum
+
+    @printf(
+        io, 
+        "StandardGAM{R^%d --> R} with %d terms, total %d parameters\n", 
+        N, eq.m, npars
+    )
     @printf(io, "  ylim = [%.2f, %.2f]\n", eq.ylim...)
     @printf(io, "  R2   = %.4f\n", eq.r2)
     println(io, "  Formula: f(x) = ")
