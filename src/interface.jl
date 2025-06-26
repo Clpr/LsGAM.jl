@@ -11,6 +11,9 @@ export isclamped
 SECTION: (VECTOR) TERMS g(x): R^n -> R^{k_i}
 
 + Notes:
+    - all TERMS should have NO type parameters, i.e. `Term{N}` is not allowed.
+    That information should be a field of the term if necessary.
+
     - all TERMS are not clamped while the whole GAM can be clamped by adding a
     clamping "layer" on top of the GAM.
 
@@ -47,7 +50,24 @@ SECTION: (VECTOR) TERMS g(x): R^n -> R^{k_i}
           for terms that have fields. leave it empty for terms without fields.
     - Use "todict(term)" interface to convert a term to a serializable dict; use
       "fromdict(dict)" interface to convert a dict to a term instance. Each term
-      type should implement these methods.
+      type should implement these methods (`fromdict()` is special and we will
+      explain the idea in the following bullet points).
+
+    - It is encouraged to keep the field data structure of terms compatible with 
+    the standard JSON to make life easier.
+
+    - Because the type info is saved inside a serialized dict, so we maintenance
+    a all-in-one-place implementation `fromdict(dict::Dict{String, Any})` in the
+    `interface.jl` file. This method should be updated whenever a new term type
+    is added.
+
+    - For each term type, should implement a `fromdict_TYPENAME(dict)` method,
+    where `TYPENAME` is the name of the term type, e.g. `fromdict_Poly(dict)`.
+    This internal method will be called by the `fromdict(dict)` method using
+    `getfield(LsGAM, Symbol("fromdict_", TYPENAME))(dict)`. This design allows
+    parallel developement of new term types while keeping the `interface.jl`
+    file tidy.
+
 
 + Shared interfaces ------------------------------------------------------------
 
@@ -145,6 +165,32 @@ function hessian(
     end # h
     return Hs
 end
+# ------------------------------------------------------------------------------
+"""
+    fromdict(di::Dict{String,Any})::AbstractTerm
+
+De-serialize a term from a dictionary.
+
+## Notes
+- To avoid maintaining a huge if-else chain, we urge each term type to use a
+single 
+"""
+function fromdict(di::Dict{String,Any})::AbstractTerm
+
+
+
+    # TODO
+
+
+
+
+
+
+
+
+
+end # fromdict
+
 
 
 
@@ -188,6 +234,8 @@ SECTION: GAM MODEL f(x) = β0 + ∑_{i=1}^m <g_i(x_i), β_i>
           vectors of floats. The length of each vector should match the output
           dimension of the corresponding term.
 
+    - It is encouraged to keep the field data structure of GAMs compatible with 
+    the standard JSON to make life easier.
 
 
 + Shared interfaces ------------------------------------------------------------
