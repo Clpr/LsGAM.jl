@@ -56,5 +56,5 @@ function todict(g::CRRA)::Dict{String,Any}
 end
 # ------------------------------------------------------------------------------
 function fromdict_CRRA(di::Dict{String,Any})::CRRA
-    return CRRA(γ = di["gamma"])
+    return CRRA(γ = di["gamma"] |> Float64)
 end

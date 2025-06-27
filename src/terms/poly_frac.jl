@@ -65,5 +65,5 @@ end
 # ------------------------------------------------------------------------------
 function fromdict_FracionalPoly(di::Dict{String, Any})::FracionalPoly
     @assert di["type"] == "FracionalPoly" "Invalid type: $(di["type"])"
-    return FracionalPoly(degrees = di["degrees"])
+    return FracionalPoly(degrees = di["degrees"] |> Vector{Float64})
 end

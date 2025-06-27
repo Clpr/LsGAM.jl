@@ -29,6 +29,7 @@ import Printf: @printf, @sprintf
 using Combinatorics               # for interaction terms
 import MultivariateStats  as mvs  # for least squares fitting
 import NonNegLeastSquares as nnls # for non-negative least squares fitting
+import JSON3                      # for model I/O
 
 # ==============================================================================
 abstract type AbstractGAM{N} <: Any end
@@ -90,7 +91,6 @@ include("formula/standard.jl")
 
 # all-positive coefficient (convex) GAM model
 include("formula/convex.jl")
-
 
 
 

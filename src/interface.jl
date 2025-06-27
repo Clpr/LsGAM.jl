@@ -526,6 +526,7 @@ the file should be writable.
 """
 function save!(f::AbstractGAM{N}, fpath::String)::Nothing where N
     gamType = split(f |> typeof |> string, ".")[end]
+    gamType = split(gamType, "{")[1] # remove type parameters if any
 
     getfield(
         LsGAM, 

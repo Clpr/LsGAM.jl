@@ -82,7 +82,7 @@ end
 # ------------------------------------------------------------------------------
 function fromdict_ChebyshevT(di::Dict{String,Any})::ChebyshevT
     @assert haskey(di, "degree") "Missing 'degree' key in dictionary."
-    return ChebyshevT(degree = di["degree"])
+    return ChebyshevT(degree = di["degree"] |> Int)
 end
 
 

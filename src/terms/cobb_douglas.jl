@@ -81,6 +81,6 @@ end
 function fromdict_CobbDouglas(di::Dict{String,Any})::CobbDouglas
     return CobbDouglas(
         D  = di["D"],
-        αs = di["alpha"]
+        αs = di["alpha"] |> Vector{Float64}
     )
 end

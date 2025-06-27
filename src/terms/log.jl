@@ -43,5 +43,5 @@ function todict(g::Logarithm)::Dict{String,Any}
 end
 # ------------------------------------------------------------------------------
 function fromdict_Logarithm(di::Dict{String,Any})::Logarithm
-    return Logarithm(ϵ = di["ϵ"])
+    return Logarithm(ϵ = di["ϵ"] |> Float64)
 end

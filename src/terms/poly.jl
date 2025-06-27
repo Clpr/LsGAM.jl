@@ -64,5 +64,5 @@ function todict(g::Poly)::Dict{String, Any}
 end
 # ------------------------------------------------------------------------------
 function fromdict_Poly(di::Dict{String, Any})::Poly
-    return Poly(degrees = di["degrees"])
+    return Poly(degrees = di["degrees"] |> Vector{Int})
 end

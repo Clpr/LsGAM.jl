@@ -147,5 +147,88 @@ function StandardGAM(
 
     return f
 end
+# ------------------------------------------------------------------------------
+"""
+    save_StandardGAM!(f::StandardGAM{N}, fpath::String)::Nothing where N
 
+Save the GAM model `f` to a JSON file at `fpath`. The path should be valid and
+refer to a file rather than a directory. Overwrite the file if it exists. For
+aesthetic reason, the exported JSON file is human readable and pretty-printed.
 
+## Example
+```julia
+X = rand(5000,2); Y = sum(X,dims = 2) |> vec
+f = gam.StandardGAM(
+    X, Y,
+    [
+        gam.Constant(),
+        gam.Poly(degrees = [1,2]),
+        gam.Logarithm(ϵ = 1E-8),
+        gam.Exponential(),
+        gam.CobbDouglas(D = 2),
+    ]
+)
+gam.save_StandardGAM!(f, "trash.json")
+```
+"""
+function save_StandardGAM!(f::StandardGAM{N}, fpath::String)::Nothing where N
+    di = Dict{String, Any}(
+        "type"   => "StandardGAM",
+        "type_N" => N, 
+
+        "m"    => f.m,
+        "r2"   => f.r2,
+
+        # specially handle `ylim` as it may contain `-Inf` or `Inf`
+        # tuples will be vectors in JSON
+        "ylim" => string.(f.ylim),
+
+        "terms" => Dict{String,Any}[todict(term) for term in f.terms],
+        "β"     => Vector{Float64}[coef for coef in f.β],
+    )
+
+    open(fpath, "w") do fio
+        JSON3.pretty(fio, di)
+    end
+end
+# ------------------------------------------------------------------------------
+"""
+    load_StandardGAM(fpath::String)::StandardGAM
+
+Load a StandardGAM model from a JSON file at `fpath`.
+
+## Example
+```julia
+# run the example in `save_StandardGAM!` first
+f2 = gam.load_StandardGAM("trash.json")
+```
+"""
+function load_StandardGAM(fpath::String)::StandardGAM
+    di = JSON3.read(fpath, Dict{String, Any})
+
+    # assume: the type is always "StandardGAM"
+    N    = Int(di["type_N"])
+    r2   = Float64(di["r2"])
+    m    = Int(di["m"])
+    ylim = (
+        parse(Float64, di["ylim"][1]),
+        parse(Float64, di["ylim"][2]),
+    )
+
+    # load terms & coefficients
+    terms = AbstractTerm[
+        fromdict(di_term)
+        for di_term in di["terms"]
+    ]
+
+    f = StandardGAM{N}(terms, ylim = ylim)
+    for i in 1:m
+        f.β[i] .= di["β"][i]
+    end
+
+    f.m    = m
+    f.r2   = r2
+    f.ylim = ylim
+
+    return f
+end
