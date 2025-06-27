@@ -186,6 +186,15 @@ De-serialize a term from a dictionary.
 single
 - We implement the interface using meta which is not the very performant, as we 
 expect the save/load operations would not be too often.
+
+## I/O example
+```julia
+g = gam.ChebyshevT(degree = 3)
+open("trash.json","w") do fio
+    gam.JSON3.pretty(fio, g)
+end
+g3 = gam.JSON3.read("trash.json",Dict{String,Any}) |> gam.fromdict
+```
 """
 function fromdict(di::Dict{String,Any})::AbstractTerm
     return di |> getfield(
@@ -229,19 +238,31 @@ SECTION: GAM MODEL f(x) = β0 + ∑_{i=1}^m <g_i(x_i), β_i>
     method to load the GAM from a JSON file. The JSON file should corresponds to
     a generic dict that contains the following fields:
         - `type`: the type of the GAM, e.g. "StandardGAM"
-        - `type_params`: a dict mapping from type parameter names to the values.
-          leave it empty if the GAM does not have type parameters.
-        - `fields`: a dict mapping from field names to the values except the
-          `terms` and `β` fields.
+        - `type_N`: the dimension of the input `x`, e.g. 3 for `StandardGAM{3}`
         - `terms`: a vector of serialized terms, each term is a dict that is
           created by the `todict(term)` method.
         - `β`: a vector of vectors, each vector corresponds to the coefficients
           of the corresponding term in `terms`. The coefficients are stored as
           vectors of floats. The length of each vector should match the output
           dimension of the corresponding term.
+        - other fields of the GAM which is implemented by each GAM type. They
+          are handled by the `save_TYPENAME!(f, fpath)`, `load_TYPENAME(fpath)`
+          methods.
 
     - It is encouraged to keep the field data structure of GAMs compatible with 
     the standard JSON to make life easier.
+
+    - Each GAM type should ONLY have a single integer type parameter `N` which
+    indicates the dimension of the input `x`. This is to infer the loaded model
+    structure from the JSON file. No more type parameters are allowed due to the
+    aesthetic reason.
+
+    - Like the I/O methods for the terms, each GAM type should implement a
+    `save_TYPENAME!(f,fpath)` and `load_TYPENAME(fpath)` methods, where
+    `TYPENAME` is the name of the GAM type, e.g. `save_StandardGAM!`,
+    `load_StandardGAM`. These methods will be called by the `save!` and `load`
+    interface methods in the `interface.jl` file.
+
 
 
 + Shared interfaces ------------------------------------------------------------
@@ -438,6 +459,14 @@ function coefficients(f::AbstractGAM{N})::Vector{Float64} where N
     return vcat(f.β...)
 end
 # ------------------------------------------------------------------------------
+"""
+    Base.stack(f::AbstractGAM{N}, x::AbstractVector)::Vector{Float64} where N
+
+Stack the outputs of the GAM `f` for the input vector `x`. This is useful for
+exporting the design matrix of the GAM, where each term's output is stacked
+into a single vector. The output is a vector of size `k_1 + k_2 + ... + k_m`,
+where `k_i` is the output dimension of the `i-th` term `g_i(x_i)`.
+"""
 function Base.stack(
     f::AbstractGAM{N},
     x::AbstractVector
@@ -445,6 +474,12 @@ function Base.stack(
     return reduce(vcat, [f.terms[i](x) for i in 1:f.m])
 end
 # ------------------------------------------------------------------------------
+"""
+    Base.stack(f::AbstractGAM{N}, X::AbstractMatrix)::Matrix{Float64} where N
+
+Stack the outputs of the GAM `f` for each row of the input matrix `X`. This in
+fact exports the design matrix of the GAM.
+"""
 function Base.stack(
     f::AbstractGAM{N},
     X::AbstractMatrix
@@ -456,12 +491,21 @@ function Base.stack(
     ) |> permutedims
 end
 # ------------------------------------------------------------------------------
+"""
+    update!(f::AbstractGAM{N}, βvec::AbstractVector)::Nothing where N
+
+Update the coefficients of the GAM `f` in-place from a stacked vector `βvec`.
+The vector `βvec` should have the same length as the total number of coefficient
+vectors in `f`. This method is useful in fitting the GAM to data or working with
+the design matrix directly.
+"""
 function update!(
     f   ::AbstractGAM{N},
     βvec::AbstractVector
 ) where N
     Ks = Int[length(term, N) for term in f.terms]
-    @assert length(βvec) == sum(Ks) "βvec must have $(sum(Ks)) elements but got $(length(βvec))"
+    Nβ = length(βvec)
+    @assert Nβ == sum(Ks) "require $(sum(Ks)) elements but got $(Nβ)"
     ctr = 1
     for i in 1:f.m
         f.β[i] .= βvec[ctr:ctr + Ks[i] - 1]
@@ -473,6 +517,41 @@ end
 function Base.ndims(f::AbstractGAM{N})::Int where N
     return N
 end
+# ------------------------------------------------------------------------------
+"""
+    save!(f::AbstractGAM{N}, fpath::String)::Nothing where N
 
+Save the GAM model `f` to a JSON file at `fpath`. The path should be valid and
+the file should be writable.
+"""
+function save!(f::AbstractGAM{N}, fpath::String)::Nothing where N
+    gamType = split(f |> typeof |> string, ".")[end]
 
+    getfield(
+        LsGAM, 
+        Symbol(
+            "save_", 
+            gamType,
+            "!"
+        )
+    )(f, fpath)
+    return nothing
+end
+# ------------------------------------------------------------------------------
+"""
+    load(fpath::String)::AbstractGAM{N} where N
 
+Load a GAM model from a JSON file at `fpath`.
+"""
+function load(fpath::String)
+    di      = JSON3.read(fpath, Dict{String, Any})
+    gamType = di["type"]
+    
+    return getfield(
+        LsGAM,
+        Symbol(
+            "load_",
+            gamType,
+        )
+    )(fpath)
+end
